@@ -1,0 +1,60 @@
+- name: Configure automated updates (Ubuntu)
+  hosts: ubuntu
+  become: true
+  gather_facts: false
+  vars_files:
+    - var/main.yml
+  tasks:
+
+## https://help.ubuntu.com/community/AutomaticSecurityUpdates
+
+    - name: Install apt prerequisites for automated reboots
+      ansible.builtin.apt:
+        name: update-notifier-common
+        state: present
+
+    - name: Create unattended upgrades configuration file
+      ansible.builtin.blockinfile:
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        block: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Unattended-Upgrade "1";
+        marker: "// {mark} ANSIBLE MANAGED BLOCK - unattended_upgrades settings"
+        create: true
+        mode: "0644"
+        owner: root
+        group: root
+      register: unattended_upgrades_config_set
+
+    - name: Enable automated reboots
+      ansible.builtin.blockinfile:
+        dest: /etc/apt/apt.conf.d/50unattended-upgrades
+        block: |
+          Unattended-Upgrade::Automatic-Reboot "true";
+          Unattended-Upgrade::Automatic-Reboot-Time "{{ reboot_time }}";
+        marker: "// {mark} ANSIBLE MANAGED BLOCK - unattended_upgrades settings"
+        create: true
+        mode: "0644"
+        owner: root
+        group: root
+      register: unattended_upgrades_settings_set
+
+    - name: Dpkg reconfigure
+      ansible.builtin.command:
+        cmd: dpkg-reconfigure -f noninteractive unattended-upgrades
+      register: dpkg_reconfigure_unattended_upgrades
+      when:
+        - unattended_upgrades_config_set.changed or
+          unattended_upgrades_settings_set.changed
+
+    - name: Configure updates installation timing
+      ansible.builtin.lineinfile:
+        path: /lib/systemd/system/apt-daily-upgrade.timer
+        regexp: '^OnCalendar'
+        line: OnCalendar=*-*-* {{ install_time }}
+
+    - name: Configure updates installation timing offset
+      ansible.builtin.lineinfile:
+        path: '/lib/systemd/system/apt-daily-upgrade.timer'
+        regexp: '^RandomizedDelaySec'
+        line: 'RandomizedDelaySec={{ reboot_offset}}'

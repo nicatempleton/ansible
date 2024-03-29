@@ -1,0 +1,23 @@
+- name: Update Pi-hole servers
+  hosts: pihole
+  become: yes
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Upgrade packages
+      apt:
+        upgrade: yes
+        autoremove: yes
+
+    - name: Run pihole -up
+      command: pihole -up
+      args:
+        chdir: /usr/local/bin   # Assuming pihole command is located here
+
+    - name: Restart Pi-hole service
+      service:
+        name: pihole-FTL
+        state: restarted

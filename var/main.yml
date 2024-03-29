@@ -1,0 +1,21 @@
+reboot_offset: 15m
+
+install_time: "{%- if 'patch_group_a' in group_names -%}
+                  01:30
+            {%- elif 'patch_group_b' in group_names -%}
+                  02:30
+            {%- elif 'patch_group_c' in group_names -%}
+                  03:30
+            {% else %}
+                  03:30
+            {%- endif -%}"
+
+reboot_time: "{%- if 'patch_group_a' in group_names -%}
+                  02:00
+            {%- elif 'patch_group_b' in group_names -%}
+                  03:00
+            {%- elif 'patch_group_c' in group_names -%}
+                  04:00
+            {% else %}
+                  04:00
+            {%- endif -%}"
