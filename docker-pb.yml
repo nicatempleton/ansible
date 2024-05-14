@@ -1,5 +1,5 @@
 - name: Install Docker on Ubuntu
-  hosts: all
+  hosts: docker
   remote_user: admin  # Change remote user to your sudo user!
   become: true
   vars:
