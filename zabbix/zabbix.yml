@@ -13,12 +13,12 @@
     ubuntu_ver: "jammy"
 
   tasks:
-    - name: Install prerequisites
-      apt:
-        name:
-          - python2-minimal
-          - python-pip
-        state: present
+    #- name: Install prerequisites
+    #  apt:
+    #    name:
+    #      - python2-minimal
+    #      - python-pip
+    #    state: present
 
     - name: Add Zabbix repository
       apt_repository:
@@ -26,19 +26,19 @@
         state: present
         update_cache: yes
 
-    - name: Add Zabbix repository GPG key
-      apt_key:
-        url: "https://repo.zabbix.com/zabbix/{{ zabbix_version }}/ubuntu/dists/{{ ansible_distribution_release }}/Release.key"
-        state: present
+    #- name: Add Zabbix repository GPG key
+    #  apt_key:
+    #    url: "https://repo.zabbix.com/zabbix/{{ zabbix_version }}/ubuntu/dists/{{ ansible_distribution_release }}/Release.key"
+    #    state: present
     
     - name: Update apt cache
       apt:
         update_cache: yes
 
-    - name: Add Zabbix repository GPG key
-      apt_key:
-        url: "https://repo.zabbix.com/zabbix/{{ zabbix_version }}/ubuntu/dists/{{ ansible_distribution_release }}/Release.key"
-        state: present
+    #- name: Add Zabbix repository GPG key
+    #  apt_key:
+    #    url: "https://repo.zabbix.com/zabbix/{{ zabbix_version }}/ubuntu/dists/{{ ansible_distribution_release }}/Release.key"
+    #    state: present
 
     - name: Install Zabbix agent
       apt:
@@ -65,6 +65,8 @@
         src: zabbix_agentd.conf.j2
         dest: /etc/zabbix/zabbix_agentd.conf
       notify: restart zabbix-agent
+      vars:
+        zabbix_server_ip: "{{ hostvars[inventory_hostname] }}"
 
   handlers:
     - name: restart zabbix-agent
