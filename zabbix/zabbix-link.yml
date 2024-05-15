@@ -13,7 +13,7 @@
     ubuntu_ver: "jammy"
 
   tasks:
-    #- name: Install prerequisites
+    #- name: Install prerequisites - Left this section just in case it's needed in the future
     #  apt:
     #    name:
     #      - python2-minimal
