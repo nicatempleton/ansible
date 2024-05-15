@@ -1,0 +1,67 @@
+- name: Install Zabbix client on Ubuntu servers
+  hosts: zclient
+  become: yes
+
+  vars:
+    zabbix_version: 6.4  # Adjust this according to your Zabbix version
+    zabbix_server_ip: 10.0.10.23  # Replace with your Zabbix server IP
+    zabbix_agent_ssl_cert_path: "/etc/zabbix/ssl/zabbix_agent.crt"
+    zabbix_agent_ssl_key_path: "/etc/zabbix/ssl/zabbix_agent.key"
+    zabbix_agent_ssl_ca_path: "/etc/zabbix/ssl/zabbix_ca.crt"
+    ssl_cert_dir: "/etc/zabbix/ssl"
+    certs_src_dir: "/home/admin/git/ansible/zabbix-certs"  # Directory where SSL certificates are located
+    ubuntu_ver: "jammy"
+
+  tasks:
+    #- name: Install prerequisites
+    #  apt:
+    #    name:
+    #      - python2-minimal
+    #      - python-pip
+    #    state: present
+    - name: Install Zabbix repository package
+      get_url:
+        url: "https://repo.zabbix.com/zabbix/6.4/ubuntu/pool/main/z/zabbix-release/zabbix-release_6.4-1+ubuntu22.04_all.deb"
+        dest: "/tmp/zabbix-release_6.4-1+ubuntu22.04_all.deb"
+
+    - name: Install Zabbix repository
+      apt:
+        deb: "/tmp/zabbix-release_6.4-1+ubuntu22.04_all.deb"
+        state: present
+
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+    - name: Install Zabbix agent
+      apt:
+        name: zabbix-agent
+        state: present
+
+    - name: Create SSL directory
+      file:
+        path: "{{ ssl_cert_dir }}"
+        state: directory
+
+    - name: Transfer SSL certificates
+      copy:
+        src: "{{ item }}"
+        dest: "{{ ssl_cert_dir }}"
+        mode: 0644
+      with_items:
+        - "{{ certs_src_dir }}/zabbix_agent.crt"
+        - "{{ certs_src_dir }}/zabbix_agent.key"
+        - "{{ certs_src_dir }}/zabbix_ca.key"
+
+    - name: Configure Zabbix agent
+      template:
+        src: zabbix_agentd.conf.j2
+        dest: /etc/zabbix/zabbix_agentd.conf
+      notify: restart zabbix-agent
+      vars:
+        zabbix_server_ip: "{{ hostvars[inventory_hostname] }}"
+
+  handlers:
+    - name: restart zabbix-agent
+      service:
+        name: zabbix-agent
+        state: restarted

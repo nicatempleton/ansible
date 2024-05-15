@@ -1,0 +1,73 @@
+- name: Install Zabbix client on Ubuntu servers
+  hosts: zclient
+  become: yes
+
+  vars:
+    zabbix_version: 6.4  # Adjust this according to your Zabbix version
+    zabbix_server_ip: 10.0.10.23  # Replace with your Zabbix server IP
+    zabbix_agent_ssl_cert_path: "/etc/zabbix/ssl/zabbix_agent.crt"
+    zabbix_agent_ssl_key_path: "/etc/zabbix/ssl/zabbix_agent.key"
+    zabbix_agent_ssl_ca_path: "/etc/zabbix/ssl/zabbix_ca.crt"
+    ssl_cert_dir: "/etc/zabbix/ssl"
+    certs_src_dir: "/home/admin/zabbix"  # Directory where SSL certificates are located
+    ubuntu_ver: "jammy"
+
+  tasks:
+    - name: Install prerequisites
+      apt:
+        name:
+          - python2-minimal
+          - python-pip
+        state: present
+
+    - name: Add Zabbix repository
+      apt_repository:
+        repo: "deb http://repo.zabbix.com/zabbix/{{ zabbix_version }}/ubuntu/dists/{{ubuntu_ver}}/{{ ansible_distribution_release }} main"
+        state: present
+        update_cache: yes
+
+    - name: Add Zabbix repository GPG key
+      apt_key:
+        url: "https://repo.zabbix.com/zabbix/{{ zabbix_version }}/ubuntu/dists/{{ ansible_distribution_release }}/Release.key"
+        state: present
+    
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Add Zabbix repository GPG key
+      apt_key:
+        url: "https://repo.zabbix.com/zabbix/{{ zabbix_version }}/ubuntu/dists/{{ ansible_distribution_release }}/Release.key"
+        state: present
+
+    - name: Install Zabbix agent
+      apt:
+        name: zabbix-agent
+        state: present
+
+    - name: Create SSL directory
+      file:
+        path: "{{ ssl_cert_dir }}"
+        state: directory
+
+    - name: Transfer SSL certificates
+      copy:
+        src: "{{ item }}"
+        dest: "{{ ssl_cert_dir }}"
+        mode: 0644
+      with_items:
+        - "{{ certs_src_dir }}/zabbix_agent.crt"
+        - "{{ certs_src_dir }}/zabbix_agent.key"
+        - "{{ certs_src_dir }}/zabbix_ca.crt"
+
+    - name: Configure Zabbix agent
+      template:
+        src: zabbix_agentd.conf.j2
+        dest: /etc/zabbix/zabbix_agentd.conf
+      notify: restart zabbix-agent
+
+  handlers:
+    - name: restart zabbix-agent
+      service:
+        name: zabbix-agent
+        state: restarted
