@@ -1,3 +1,5 @@
 # ansible - learning / begining 
 
-The glusterfs script doesn't work, don't trust
+Some of these files work, some don't. Trust, but verify. 
+
+
