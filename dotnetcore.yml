@@ -58,11 +58,6 @@
       apt:
         update_cache: yes
 
-#    - name: Check if PowerShell package is available
-#      shell: "apt-cache policy powershell"
-#      register: powershell_package_check
-#      failed_when: "'powershell:' not in powershell_package_check.stdout"
-
     - name: Install dotnetcore & powershell
       apt:
         name:
