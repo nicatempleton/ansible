@@ -2,13 +2,16 @@
   hosts: new
   become: yes
   vars:
-    ssl_key_source: "/home/admin/.ssh/id_rsa.pub"
     ssl_key_dest: "/home/{{ new_username }}/.ssh/"
     new_username: "admin"
     ssh_key_type: "rsa"
     ssh_key_bits: 2048
     ssh_key_comment: "admin@{{ ansible_hostname }}"
     ssh_key_dest: "/home/{{ new_username }}/.ssh/id_{{ ssh_key_type }}"
+    ssh_keys:
+      - files/ansible.pub
+      - files/nic.pub
+
   tasks:
     - name: Create user
       user:
@@ -37,19 +40,12 @@
         comment: "{{ ssh_key_comment }}"
         owner: "{{ new_username }}"
 
-    - name: Add SSH public key to authorized_keys
+    - name: Add multiple SSH keys to authorized_keys
       authorized_key:
         user: "{{ new_username }}"
-        key: "{{ lookup('file', ssh_key_dest + '.pub') }}"
         state: present
-
-    - name: Copy SSL key
-      copy:
-        src: "{{ ssl_key_source }}"
-        dest: "{{ ssl_key_dest }}"
-        owner: root
-        group: root
-        mode: 0600
+        key: "{{ lookup('file', item) }}"
+      with_items: "{{ ssh_keys }}"
 
     - name: Add NOPASSWD to sudoers for new user
       lineinfile:

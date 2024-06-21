@@ -1,2 +1,3 @@
 zabbix/zabbix-certs/*
 .gitignore
+files/*.pub
