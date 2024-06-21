@@ -1,0 +1,73 @@
+---
+- name: Install PowerShell on Ubuntu
+  hosts: dotnetcore
+  become: yes
+
+  tasks:
+    - name: Update the list of packages
+      apt:
+        update_cache: yes
+
+    - name: Install pre-requisite packages
+      apt:
+        name:
+          - wget
+          - apt-transport-https
+          - software-properties-common
+        state: present
+
+    - name: Get the version of Ubuntu
+      shell: ". /etc/os-release && echo $VERSION_ID"
+      register: ubuntu_version
+
+    - name: Get the codename of Ubuntu
+      command: lsb_release -cs
+      register: ubuntu_codename
+
+    - name: Download the Microsoft repository keys
+      get_url:
+        url: "https://packages.microsoft.com/config/ubuntu/{{ ubuntu_version.stdout }}/packages-microsoft-prod.deb"
+        dest: /tmp/packages-microsoft-prod.deb
+
+    - name: Register the Microsoft repository keys
+      shell: "dpkg -i /tmp/packages-microsoft-prod.deb"
+
+    - name: Delete the Microsoft repository keys file
+      file:
+        path: /tmp/packages-microsoft-prod.deb
+        state: absent
+
+    - name: Remove existing Microsoft repository list
+      file:
+        path: /etc/apt/sources.list.d/microsoft-prod.list
+        state: absent
+        force: yes
+
+    - name: Add Microsoft GPG key
+      apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+        keyring: /usr/share/keyrings/microsoft-prod.gpg
+
+    - name: Add Microsoft repository
+      copy:
+        content: "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/ubuntu/{{ ubuntu_version.stdout }}/prod {{ ubuntu_codename.stdout }} main"
+        dest: /etc/apt/sources.list.d/microsoft-prod.list
+
+    - name: Update the list of packages after adding packages.microsoft.com
+      apt:
+        update_cache: yes
+
+#    - name: Check if PowerShell package is available
+#      shell: "apt-cache policy powershell"
+#      register: powershell_package_check
+#      failed_when: "'powershell:' not in powershell_package_check.stdout"
+
+    - name: Install dotnetcore & powershell
+      apt:
+        name:
+          - dotnet-sdk-8.0
+          - aspnetcore-runtime-8.0
+          - dotnet-runtime-8.0
+          - powershell
+        state: present

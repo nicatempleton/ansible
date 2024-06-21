@@ -1,10 +1,23 @@
 Server=10.0.10.23
 ServerActive=10.0.10.23
-Hostname={{ ansible_hostname }}
-#TLSConnect=psk
-#TLSAccept=psk
+Hostname=docker1
+
+TLSConnect=cert
+TLSAccept=cert
+
+
+
 #TLSPSKIdentity=PSK 001
 #TLSPSKFile=/etc/zabbix/ssl/zabbix_agent.key
+
+TLSCAFile=/etc/zabbix/ssl/zabbix_ca.key
+TLSCertFile=/etc/zabbix/ssl/zabbix_agentd.crt
+TLSKeyFile=/etc/zabbix/ssl/zabbix_agentd.key
+
+TLSConnect=cert
+TLSAccept=cert
+
 LogType=file
 LogFile=/var/log/zabbix/zabbix_agentd.log
-PidFile=/run/zabbix/zabbix_agentd.pid
+#PidFile=/run/zabbix/zabbix_agentd.pid
+

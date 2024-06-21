@@ -2,22 +2,14 @@
   hosts: new
   become: yes
   vars:
-    ssl_key_source: "/path/to/your/ssl.key"
-    # ssl_key_dest: "/etc/ssl/your_ssl.key"
+    ssl_key_source: "/home/admin/.ssh/id_rsa.pub"
+    ssl_key_dest: "/home/{{ new_username }}/.ssh/"
     new_username: "admin"
     ssh_key_type: "rsa"
     ssh_key_bits: 2048
     ssh_key_comment: "admin@{{ ansible_hostname }}"
     ssh_key_dest: "/home/{{ new_username }}/.ssh/id_{{ ssh_key_type }}"
   tasks:
-    - name: Copy SSL key
-      copy:
-        src: "{{ ssl_key_source }}"
-        dest: "{{ ssl_key_dest }}"
-        owner: root
-        group: root
-        mode: 0600
-
     - name: Create user
       user:
         name: "{{ new_username }}"
@@ -29,6 +21,13 @@
         name: "{{ new_username }}"
         groups: sudo
         append: yes
+
+    - name: Create .ssh directory 
+      ansible.builtin.file:
+        path: /home/{{ new_username }}/.ssh/
+        state: directory
+        owner: "{{ new_username }}"
+        group: "{{ new_username }}"
 
     - name: Generate SSH key for new user
       community.crypto.openssh_keypair:
@@ -42,4 +41,28 @@
       authorized_key:
         user: "{{ new_username }}"
         key: "{{ lookup('file', ssh_key_dest + '.pub') }}"
+        state: present
+
+    - name: Copy SSL key
+      copy:
+        src: "{{ ssl_key_source }}"
+        dest: "{{ ssl_key_dest }}"
+        owner: root
+        group: root
+        mode: 0600
+
+    - name: Add NOPASSWD to sudoers for new user
+      lineinfile:
+        dest: /etc/sudoers
+        line: "{{ new_username }} ALL=(ALL) NOPASSWD: ALL"
+        validate: '/usr/sbin/visudo -cf %s'
+
+    - name: Update the list of packages
+      apt:
+        update_cache: yes
+
+    - name: Install pre-requisite packages
+      apt:
+        name:
+          - qemu-guest-agent
         state: present
