@@ -1,0 +1,110 @@
+---
+- name: Install and configure LAMP server
+  hosts: lamp
+  become: yes
+  vars_files:
+    - vault.yml
+  tasks:
+    - name: Update and upgrade apt packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install Python 3 and pip
+      apt:
+        name: 
+          - python3
+          - python3-pip
+        state: present
+
+    - name: Install PyMySQL for Python 3
+      pip:
+        name: PyMySQL
+        state: present
+        executable: pip3
+
+    - name: Install Apache
+      apt:
+        name: apache2
+        state: present
+
+    - name: Ensure Apache is started and enabled
+      systemd:
+        name: apache2
+        state: started
+        enabled: yes
+
+    - name: Install MySQL server
+      apt:
+        name: mysql-server
+        state: present
+
+    - name: Ensure MySQL is started and enabled
+      systemd:
+        name: mysql
+        state: started
+        enabled: yes
+
+    - name: Secure MySQL Installation - Set Root Password
+      shell: |
+        mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '{{ mysql_root_password }}'; FLUSH PRIVILEGES;"
+
+    - name: Install PHP and required modules
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - php
+        - php-mysql
+        - libapache2-mod-php
+
+    - name: Create a simple PHP info file
+      copy:
+        dest: /var/www/html/info.php
+        content: "<?php phpinfo(); ?>"
+
+    - name: Restart Apache to load PHP module
+      systemd:
+        name: apache2
+        state: restarted
+
+    - name: Create a database
+      community.mysql.mysql_db:
+        name: "{{ database_name }}"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+
+    - name: Create a MySQL user and grant privileges
+      community.mysql.mysql_user:
+        name: "{{ database_user }}"
+        password: "{{ database_password }}"
+        priv: "{{ database_name }}.*:ALL"
+        state: present
+        host: localhost
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        column_case_sensitive: false
+
+    - name: Ensure UFW is installed
+      apt:
+        name: ufw
+        state: present
+
+    - name: Preseed UFW to enable non-interactively
+      debconf:
+        name: ufw
+        question: ufw/enable
+        value: 'true'
+        vtype: boolean
+
+    - name: Enable UFW non-interactively
+      shell: echo "y" | ufw enable
+
+    - name: Allow OpenSSH and Apache through firewall
+      ufw:
+        rule: allow
+        name: "{{ item }}"
+      loop:
+        - OpenSSH
+        - 'Apache Full'

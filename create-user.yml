@@ -1,0 +1,54 @@
+- name: Configure SSL key, create user, generate SSH key, and add NOPASSWD to sudoers
+  hosts: remote
+  become: yes
+  vars:
+    ssl_key_dest: "/home/{{ new_username }}/.ssh/"
+    new_username: "test"
+    ssh_key_type: "rsa"
+    ssh_key_bits: 2048
+    ssh_key_comment: "admin@{{ ansible_hostname }}"
+    ssh_key_dest: "/home/{{ new_username }}/.ssh/id_{{ ssh_key_type }}"
+    ssh_keys:
+      - files/ansible.pub
+      - files/nic.pub
+
+  tasks:
+    - name: Create user
+      user:
+        name: "{{ new_username }}"
+        state: present
+        shell: /bin/bash
+
+    - name: Add new user to sudo group
+      user:
+        name: "{{ new_username }}"
+        groups: sudo
+        append: yes
+
+    - name: Create .ssh directory 
+      ansible.builtin.file:
+        path: /home/{{ new_username }}/.ssh/
+        state: directory
+        owner: "{{ new_username }}"
+        group: "{{ new_username }}"
+
+    - name: Generate SSH key for new user
+      community.crypto.openssh_keypair:
+        path: "{{ ssh_key_dest }}"
+        type: "{{ ssh_key_type }}"
+        size: "{{ ssh_key_bits }}"
+        comment: "{{ ssh_key_comment }}"
+        owner: "{{ new_username }}"
+
+    - name: Add multiple SSH keys to authorized_keys
+      authorized_key:
+        user: "{{ new_username }}"
+        state: present
+        key: "{{ lookup('file', item) }}"
+      with_items: "{{ ssh_keys }}"
+
+    - name: Add NOPASSWD to sudoers for new user
+      lineinfile:
+        dest: /etc/sudoers
+        line: "{{ new_username }} ALL=(ALL) NOPASSWD: ALL"
+        validate: '/usr/sbin/visudo -cf %s'
