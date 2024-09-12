@@ -57,8 +57,20 @@
       apt:
         update_cache: yes
 
+    - name: Upgrade all packages
+      apt:
+        upgrade: yes
+
     - name: Install pre-requisite packages
       apt:
         name:
           - qemu-guest-agent
+          - curl
+          - wget
+          - unattended-upgrades
         state: present
+
+#    - name: Download and run the Oh My Bash install script
+#      shell: bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)"
+#      args:
+#        executable: /bin/bash

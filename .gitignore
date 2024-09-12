@@ -1,3 +1,4 @@
 zabbix/zabbix-certs/*
 .gitignore
 files/*
+vault.yml
