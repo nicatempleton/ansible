@@ -1,6 +1,6 @@
 ---
-- name: Install PowerShell on Ubuntu
-  hosts: dotnet
+- name: Install MS Tools
+  hosts: zabbix
   become: yes
 
   tasks:
@@ -30,7 +30,7 @@
         dest: /tmp/packages-microsoft-prod.deb
 
     - name: Register the Microsoft repository keys
-      shell: "dpkg -i /tmp/packages-microsoft-prod.deb"
+      command: "dpkg -i /tmp/packages-microsoft-prod.deb"
 
     - name: Delete the Microsoft repository keys file
       file:
@@ -66,3 +66,28 @@
           - dotnet-runtime-8.0
           - powershell
         state: present
+
+    - name: Install msodbcsql18 with EULA acceptance
+      command: >
+        apt-get install -y msodbcsql18
+        environment:
+          ACCEPT_EULA: 'Y'
+
+    - name: Install mssql-tools18 with EULA acceptance
+      command: >
+        apt-get install -y mssql-tools18
+        environment:
+          ACCEPT_EULA: 'Y'
+
+    - name: Update PATH for mssql-tools18
+      lineinfile:
+        path: ~/.bashrc
+        line: 'export PATH="$PATH:/opt/mssql-tools18/bin"'
+        create: yes
+        state: present
+
+    - name: Source ~/.bashrc
+      shell: source ~/.bashrc
+      become: no
+      environment:
+        PATH: "{{ ansible_env.PATH }}"
