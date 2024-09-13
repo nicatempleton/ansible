@@ -1,0 +1,34 @@
+- name: Set authorized keys taken from url
+  ansible.posix.authorized_key:
+    user: charlie
+    state: present
+    key: https://github.com/charlie.keys
+
+- name: Set up multiple authorized keys
+  ansible.posix.authorized_key:
+    user: deploy
+    state: present
+    key: '{{ item }}'
+  with_file:
+    - public_keys/doe-jane
+    - public_keys/doe-john
+
+- name: Set authorized key defining key options
+  ansible.posix.authorized_key:
+    user: charlie
+    state: present
+    key: "{{ lookup('file', '/home/charlie/.ssh/id_rsa.pub') }}"
+    key_options: 'no-port-forwarding,from="10.0.1.1"'
+
+- name: Set authorized key, removing all the authorized keys already set
+  ansible.posix.authorized_key:
+    user: root
+    key: "{{ lookup('file', 'public_keys/doe-jane') }}"
+    state: present
+    exclusive: true
+
+- name: Set authorized key for user ubuntu copying it from current user
+  ansible.posix.authorized_key:
+    user: ubuntu
+    state: present
+    key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"

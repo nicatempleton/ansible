@@ -8,9 +8,8 @@
     ssh_key_bits: 2048
     ssh_key_comment: "admin@{{ ansible_hostname }}"
     ssh_key_dest: "/home/{{ new_username }}/.ssh/id_{{ ssh_key_type }}"
-#    ssh_keys:
-#      - files/ansible.pub
-#      - files/nic.pub
+    ssh_keys:
+      - files/ansible.pub
 
   tasks:
     - name: Create user
@@ -40,12 +39,12 @@
         comment: "{{ ssh_key_comment }}"
         owner: "{{ new_username }}"
 
-#    - name: Add multiple SSH keys to authorized_keys
-#      authorized_key:
-#        user: "{{ new_username }}"
-#        state: present
-#        key: "{{ lookup('file', item) }}"
-#      with_items: "{{ ssh_keys }}"
+    - name: Add multiple SSH keys to authorized_keys
+      authorized_key:
+        user: "{{ new_username }}"
+        state: present
+        key: "{{ lookup('file', item) }}"
+      with_items: "{{ ssh_keys }}"
 
     - name: Add NOPASSWD to sudoers for new user
       lineinfile:
