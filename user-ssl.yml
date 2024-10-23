@@ -5,14 +5,14 @@
   vars:
     # List of users with SSH keys and their state
     users_and_keys:
-      - user: "user1"
-        state: "present"  # Set to "present" to create the user and add their keys
+      - user: "nic"
+        state: "absent"  # Set to "present" to create the user and add their keys
         keys:
-          - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCkGbau/ymNbG94suL4Oq7tdqldpqz... "
-      - user: "user2"
+          - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCkGbau/ymNbG94suL4Oq7tdqldpqzjJjlxCHnvQWif8mm51dg+xxfsFpgNIq5iHJmz5yC+WtuZpg1BBmHoZENbb+C2+yLWC79eYyOwE7CB1gL8iSoZGLnUdGIXuARyWQOlQH7i2K/05MKPd3Fz3WoUVNTtrA6JZmW82aEYg6AANQAjCf5vIrpHwi3afrQ0SH+lGWPS0HhCyP7gFvbEDnZpwBPBHK/3iJAL0g4LDFZ/EeVsxWm12lZoxRmW6OMM/APG5VD2XcWlIzWV6vhAMhEhh3ngqYih8yNd3iFhFEBMnO4OoI3CRtT6IX3CQv4avofrB88utRUwGEr5XpyDZPOtUOKZ9C+5AtI1gdrm/5XaDsIh3x7AixJvxD7HwJYNEBrrgmXrLhUmVAeOXePqXDKYvHoTNfdlENzD2ml7eX9BWzWzj1AVL/UhE2Ov4xR5YZYwAfRGjMKddBDgNhGogloWme3UJT4GuID7PftCNz9+QLzQ2ABEfkNCgULMMf1QseU= nic@nic-hp"
+      - user: "admin"
         state: "present"   # Set to "absent" to remove the user and their keys
         keys:
-          - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDjVYHmegPGIVsm5ipU3K0qQFUsXV3+... "
+          - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDjVYHmegPGIVsm5ipU3K0qQFUsXV3+aVENJAjrxiAAu4AYJJN0xx9fJurci6lyzdc2OiN6Tj90IuoqlPTiWEyAySKjPnk4onhHmqqPNh5sKYQFgwmcOeqEB2iv6vCRjOZ95odZVqcnySMv/DIliWgkAWP9HPj0mIP6kpIueN6ziijcU/W9unnTAx4+mawLMD/4Nj267jeM2ZiCGz2nTaqAkKKj01busmhPc5ld0Y1TxO6yDKIOgJXD3gOGQ1itrlsZsUUgvPktMvkbgOTKdyeSYQO5npLdI+zC9qz1xkNH6aYqwwCVvyXa3pn5oZ5t9ndGdpvCubG2UUYwEWKtV+p5cp4TYYDZ3Z09fYV91goHus3mTTGbBsgX2NryHYKV5Xct6D7StRq5A6CS+dkFS0SMyy4MOPlgLfk6Ot3gGDXjtLxNabawk4UW4qePemp1bL7Q2evkyxSvsC2XuLoSv2Eow7Aj29jtm+EwZZ0Op/jyL+AC2L7wgtSOCyepVwwoPVM= admin@ansible"
 
   tasks:
     - name: Manage SSH authorized keys for present users

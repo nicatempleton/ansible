@@ -10,7 +10,7 @@
     ssh_key_dest: "/home/{{ new_username }}/.ssh/id_{{ ssh_key_type }}"
     ssh_keys:
       - files/ansible.pub
-      - files/nic.pub
+#      - files/nic.pub
 
   tasks:
     - name: Create user
@@ -68,6 +68,7 @@
           - curl
           - wget
           - unattended-upgrades
+          - git
         state: present
 
 #    - name: Download and run the Oh My Bash install script
