@@ -3,14 +3,13 @@
   become: yes
   vars:
     ssl_key_dest: "/home/{{ new_username }}/.ssh/"
-    new_username: "test"
+    new_username: "admin"
     ssh_key_type: "rsa"
     ssh_key_bits: 2048
     ssh_key_comment: "admin@{{ ansible_hostname }}"
     ssh_key_dest: "/home/{{ new_username }}/.ssh/id_{{ ssh_key_type }}"
     ssh_keys:
-      - files/ansible.pub
-      - files/nic.pub
+      - files/certs/ansible.pub
 
   tasks:
     - name: Create user

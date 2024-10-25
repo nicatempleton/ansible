@@ -10,7 +10,7 @@
     ssh_key_dest: "/home/{{ new_username }}/.ssh/id_{{ ssh_key_type }}"
     ssh_keys:
       - files/certs/ansible.pub
-      - files/certs/nic-wsl.pub
+#      - files/certs/nic-wsl.pub
 #      - files/certs/webservices/russelb.pub
 
   tasks:
@@ -26,12 +26,12 @@
         groups: sudo
         append: yes
 
-    #- name: Create .ssh directory 
-    #  ansible.builtin.file:
-    #    path: /home/{{ new_username }}/.ssh/
-    #    state: directory
-    #    owner: "{{ new_username }}"
-    #    group: "{{ new_username }}"
+    - name: Create .ssh directory 
+      ansible.builtin.file:
+        path: /home/{{ new_username }}/.ssh/
+        state: directory
+        owner: "{{ new_username }}"
+        group: "{{ new_username }}"
 
     - name: Generate SSH key for new user
       community.crypto.openssh_keypair:
@@ -62,8 +62,14 @@
       apt:
         upgrade: yes
 
-#    - name: Install pre-requisite packages
-#      apt:
-#        name:
-#          - qemu-guest-agent
-#        state: present
+    - name: Install pre-requisite packages
+      apt:
+        name:
+          - qemu-guest-agent
+        state: present
+
+    - name: Remove user example_user
+      ansible.builtin.user:
+        name: newadmin
+        state: absent
+        remove: yes        
